@@ -12,55 +12,90 @@ mongoose
   .then((result) => console.log("connected to db"))
   .catch((err) => console.log(err));
 
-app.get("/add-album", (req, res) => {
-  const album = new Album({
-    title: "CRUSH EP",
-    description:
-      "Artist: Ravyn Lenae, \n Favorite songs: 4 Leaf clover, The Night Song, Sticky",
-    price: 18,
-  });
-  album
-    .save()
-    .then((result) => {
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
 app.get("/all-albums", (req, res) => {
   Album.find()
     .then((result) => {
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-//66e4036bbcfcca928bd76d86
-app.get("/album/:id", (req, res) => {
-  const albumId = req.params.id;
-  Album.findById(albumId)
-    .then((result) => {
-      res.send(result);
+      res.json(result);
     })
     .catch((err) => {
       console.log(err);
     });
 });
 
-app.get("/deleted-album", async (req, res) => {
-  const deletedAlbum = await Album.findOneAndDelete({
-    _id: "66e4036bbcfcca928bd76d86",
+app.post("/albums", (req, res) => {
+  const { title, description, price } = req.body;
+  const album = new Album({
+    title,
+    description,
+    price,
   });
-  if (deletedAlbum) {
-    res.status(200).send({
-      message: "album deleted successfully",
-      album: deletedAlbum,
+  album
+    .save()
+    .then((result) => {
+      res.status(201).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: "Error saving album" });
     });
-  } else {
-    res.status(404).send({
-      message: "album not found",
+});
+
+app.get("/album/:id", (req, res) => {
+  const albumId = req.params.id;
+  Album.findById(albumId)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.put("/album/:id", async (req, res) => {
+  const albumId = req.params.id;
+  const updatedData = req.body;
+  try {
+    const updatedAlbum = await Album.findByIdAndUpdate(albumId, updatedData, {
+      new: true,
+    });
+    if (updatedAlbum) {
+      res.status(200).json({
+        message: "album updated successfully",
+        album: updatedAlbum,
+      });
+    } else {
+      res.status(401).json({
+        message: "album not found",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Error updating album",
+      error: error.message,
+    });
+  }
+});
+
+app.delete("/album/:id", async (req, res) => {
+  const albumId = req.params.id;
+  try {
+    const deletedAlbum = await Album.findOneAndDelete({
+      _id: albumId,
+    });
+    if (deletedAlbum) {
+      res.status(200).json({
+        message: "album deleted successfully",
+        album: deletedAlbum,
+      });
+    } else {
+      res.status(404).json({
+        message: "album not found",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting the album",
+      error: error.message,
     });
   }
 });
