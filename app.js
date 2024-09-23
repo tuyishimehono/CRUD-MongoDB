@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Album = require("./models/album");
 
 const app = express();
+app.use(express.json());
 
 const dbURI =
   "mongodb+srv://Hono:hono123@crud-db.0zfq2.mongodb.net/albums?retryWrites=true&w=majority&appName=CRUD-DB";
